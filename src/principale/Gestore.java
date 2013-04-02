@@ -8,13 +8,21 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
-
+/**
+ * Classe che gestisce l'ordinamento con quicksort parallelo di un file di testo.
+ * */
 public final class Gestore {
 	/**
 	 * mappa di sola lettura contenente il file intero
 	 * */
 	public static String[] contenuto;
+	/**
+	 * Indica il Locale da usare, in questo caso il Lituano
+	 * */
+	static Locale MIO_LOCALE=Locale.forLanguageTag("en-US.UTF-8");
+	//static final Locale MIO_LOCALE=Locale.US;
 	/**
 	 * mappa di sola lettura contenente gli indici delle chiavi
 	 * */
@@ -29,11 +37,12 @@ public final class Gestore {
 	public static void main(String[] args) throws IOException {
 		long avvio=System.currentTimeMillis();
 		if(args.length!=4){
-			System.err.println("Errore, devi inserire quattro argomenti:" +
-					"\n*il percorso del file TSV" +
-					"\n*L'indice della colonna su cui ordinare" +
-					"\n*Il numero di thread massimi (da 1 a 12)" +
-			"\n*Il file per l'output ordinato");
+			System.err.println("Errore, devi inserire quattro o cinque argomenti:" +
+					"\n* il percorso del file TSV" +
+					"\n* L'indice della colonna su cui ordinare" +
+					"\n* Il numero di thread massimi (da 1 a 12)" +
+			"\n* Il file per l'output ordinato" +
+			"\n* [opzionale] Il Locale, ad esempio 'lt-LT' se non specificato utilizza 'en-US'");
 			System.exit(1);
 		}
 		String inputFile=args[0];
@@ -57,6 +66,11 @@ public final class Gestore {
 			System.exit(3);
 		}
 		String outputFile=args[3];
+		if(args.length==5)
+			MIO_LOCALE=Locale.forLanguageTag(args[4]);
+		System.out.println("NOTA: per confrontare le stringhe utilizzo il Locale '"+MIO_LOCALE.toLanguageTag()+"' ['"+MIO_LOCALE.getDisplayName()+"']");
+		
+		
 		//carichiamo il file in memoria, memorizzando il campo su cui avverrà l'ordinamento sotto forma di valore e di chiave
 		FileInputStream fs=null;
 		try {
@@ -71,7 +85,7 @@ public final class Gestore {
 		DataInputStream din = new DataInputStream(fs);
 		BufferedReader br = new BufferedReader(new InputStreamReader(din));
 		
-		//pasos il file due volte, la prima solo per contare le righe e la seconda per memorizzarle
+		//passo il file due volte, la prima solo per contare le righe e la seconda per memorizzarle
 		//ho fatto delle prove e ho visto che è più veloce fare due passate e istanziare direttamente un arraypiuttosto che usare una struttura dati
 		//intermedia allocata dinamicamente
 		int dimensioni=0;
@@ -102,6 +116,8 @@ public final class Gestore {
 			indici[i]=i;
 		}
 		System.out.println("File caricato, ho impiegato "+(System.currentTimeMillis()-avvio)+"ms. Passo all'ordinamento");
+		
+		
 		avvio=System.currentTimeMillis();
 		//ora creo la coda per le azioni di ordinamento da compiere, nella forma "indice inizio,indice fine"
 		try {
@@ -119,7 +135,7 @@ public final class Gestore {
 		 * Non uso join e wait, perché per efficienza lascio aperta l'istanza del thread e la riutilizzo, senza chiuderla.
 		 *  */
 		//parto da 1, il thread 0 è il main
-		for(int i=1;i<maxThread;i++){
+		for(int i=0;i<maxThread;i++){
 			ordinatori[i]=new Ordinatore();
 			ordinatori[i].start();
 		}
@@ -127,10 +143,11 @@ public final class Gestore {
 		//quando tutti i thread sono in starving e la lista è vuota, ho finito
 		while(true){
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				//non importa
 			}
+			System.out.println("Ci sono "+pendenti.size()+" ordinamenti pendenti");
 			if(pendenti.size()>0) continue;
 			for(int i=0;i<maxThread;i++)
 				if (ordinatori[i].starving==false)
@@ -138,8 +155,7 @@ public final class Gestore {
 			//sono arrivato qua, quindi la coda è vuota e i thread sono in starvation, esco dal ciclo e salvo il file
 			break;
 		}
-		for(int i=1;i<maxThread;i++)ordinatori[i].terminabile=true;
-		System.out.println("\nOrdinamento effettuato, impiegati "+(System.currentTimeMillis()-avvio)+"ms");
+		System.out.println("\nOrdinamento effettuato, impiegati "+(System.currentTimeMillis()-avvio)+"ms, salvo...");
 		avvio=System.currentTimeMillis();
 		
 		FileWriter fso = new FileWriter(outputFile);
@@ -150,5 +166,6 @@ public final class Gestore {
 		}
 		out.close();
 		System.out.println("Scrittura del file "+outputFile+" conclusa, ha richiesto "+(System.currentTimeMillis()-avvio)+"ms");
+		System.exit(0);
 	}
 }

@@ -1,33 +1,24 @@
 package principale;
 
 import java.text.Collator;
-import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+/**
+ * Classe che gestisce un singolo thread per l'ordinamento tramite quicksort.
+ * I vari thread usano una struttura a coda condivisa per spartirsi il lavoro
+ * */
+public final class Ordinatore extends Thread {
 
-public class Ordinatore extends Thread {
-	
-	/**
-	 * Indica il locale da usare, di default il lituano
-	 * */
-	static final Locale MIO_LOCALE=Locale.forLanguageTag("lt_LT");
-	private final Collator collator=Collator.getInstance(MIO_LOCALE);
+	private final Random rng = new Random();
+	private final Collator collator=Collator.getInstance(Gestore.MIO_LOCALE);
 	/**
 	 * Indica se questo thread sta facendo qualcosa
 	 * */
 	public volatile boolean starving=true;
-	/**
-	 * Indica se questo thread deve terminarsi
-	 * */
-	public volatile boolean terminabile=false;
 	private int[] ind;
 	private String[] chiavi;
 	public void run(){
 		while(true){
-			if(terminabile){
-				System.out.println("richiesta di terminazione, chiudo un ordinatore");
-				return;
-			}
 			starving=true;
 			CoppiaIndici azione=null;
 			try {
@@ -40,77 +31,86 @@ public class Ordinatore extends Thread {
 			if(azione==null) continue;
 			//sono qua, quindi ho preso un'azione e non era null, non sono più starving
 			starving=false;
-			//azione di quicksort vera e propria
-			//System.out.println("azione: "+azione.inizio+"-"+azione.fine);
-			//se sono due o uno, li sposto e basta senza accodarli
-			if(azione.fine-azione.inizio<2){
-				if(azione.fine==azione.inizio) continue;
-				if(decrescenti(chiavi[azione.inizio],chiavi[azione.fine])){
-					//vanno scambiati
-					scambia(azione.inizio,azione.fine);
-				}
-				continue;
-			}
-			//sono più di 2, cerco il pivot
-			//per farlo scelgo 3 elementi casuali e faccio la mediana tra essi
-			Random rng = new Random();
-			int a=rng.nextInt(azione.fine-azione.inizio)+azione.inizio;
-			int b=rng.nextInt(azione.fine-azione.inizio)+azione.inizio;
-			int c=rng.nextInt(azione.fine-azione.inizio)+azione.inizio;
-			String pivot;
-			int ipivot;
-			if(decrescenti(chiavi[a],chiavi[b])){
-				if(decrescenti(chiavi[b],chiavi[c])) {
-					pivot=chiavi[b];
-					ipivot=b;
-				}
-				else
-					if (decrescenti(chiavi[a],chiavi[c])){
-						pivot=chiavi[c];
-						ipivot=c;
-					}
-					else{
-						pivot=chiavi[a];
-						ipivot=a;
-					}
+			ordina(azione);
 
+			//for(int k=azione.inizio;k<azione.fine;k++) System.out.print(chiavi.get(ind[k])+", ");
+
+		}
+	}
+
+	private void ordina(CoppiaIndici azione){
+		//azione di quicksort vera e propria
+		//System.out.println("azione: "+azione.inizio+"-"+azione.fine);
+		//se sono due o uno, li sposto e basta senza accodarli
+		if(azione.fine-azione.inizio<2){
+			if(azione.fine==azione.inizio) return;
+			if(decrescenti(chiavi[azione.inizio],chiavi[azione.fine])){
+				//vanno scambiati
+				scambia(azione.inizio,azione.fine);
 			}
-			else{
-				if(decrescenti(chiavi[a],chiavi[c])){
+			return;
+		}
+		//sono più di 2, cerco il pivot per continuare
+		//per farlo scelgo 3 elementi casuali e faccio la mediana tra essi
+		int a=rng.nextInt(azione.fine-azione.inizio)+azione.inizio;
+		int b=rng.nextInt(azione.fine-azione.inizio)+azione.inizio;
+		int c=rng.nextInt(azione.fine-azione.inizio)+azione.inizio;
+		String pivot;
+		int ipivot;
+		if(decrescenti(chiavi[a],chiavi[b])){
+			if(decrescenti(chiavi[b],chiavi[c])) {
+				pivot=chiavi[b];
+				ipivot=b;
+			}
+			else
+				if (decrescenti(chiavi[a],chiavi[c])){
+					pivot=chiavi[c];
+					ipivot=c;
+				}
+				else{
 					pivot=chiavi[a];
 					ipivot=a;
 				}
-				else
-					if (decrescenti(chiavi[b],chiavi[c])){
-						ipivot=c;
-						pivot=chiavi[c];
-					}
-					else{
-						pivot=chiavi[b];
-						ipivot=b;
-					}
-
+		}
+		else{
+			if(decrescenti(chiavi[a],chiavi[c])){
+				pivot=chiavi[a];
+				ipivot=a;
 			}
-			//ora pivot contiene la stringa pivot e ipivot il suo indice
-			//System.out.println(" pivot:"+pivot);
-			scambia(azione.fine,ipivot);
-			int store=azione.inizio;
-			for(int i=azione.inizio;i<azione.fine;i++){
-				if(decrescenti(pivot,chiavi[i])){
-					scambia(i,store);
-					store++;
+			else
+				if (decrescenti(chiavi[b],chiavi[c])){
+					ipivot=c;
+					pivot=chiavi[c];
 				}
+				else{
+					pivot=chiavi[b];
+					ipivot=b;
+				}
+
+		}
+		//ora pivot contiene la stringa pivot e ipivot il suo indice
+		//System.out.println(" pivot:"+pivot);
+		scambia(azione.fine,ipivot);
+		int store=azione.inizio;
+		for(int i=azione.inizio;i<azione.fine;i++){
+			if(decrescenti(pivot,chiavi[i])){
+				scambia(i,store);
+				store++;
 			}
-			scambia(store,azione.fine);
-			//ora ho eseguito un passo del quicksort, inserisco le due nuove partizioni nella coda
-			//System.out.println("aggiungo in coda "+azione.inizio+" "+store);
+		}
+		scambia(store,azione.fine);
+		//ora ho eseguito un passo del quicksort, inserisco le due nuove partizioni nella coda
+		//se sono pochi, uso la ricorsione
+		if(azione.inizio-azione.fine<100){
+			ordina(new CoppiaIndici(azione.inizio,store));
+			ordina(new CoppiaIndici(store+1,azione.fine));
+		}
+		else{
 			Gestore.pendenti.add(new CoppiaIndici(azione.inizio,store));
 			Gestore.pendenti.add(new CoppiaIndici(store+1,azione.fine));
-
-			//for(int k=azione.inizio;k<azione.fine;k++) System.out.print(chiavi.get(ind[k])+", ");
-			
 		}
 	}
+
 	public void start(){
 		this.ind=Gestore.indici;
 		this.chiavi=Gestore.chiavi;
