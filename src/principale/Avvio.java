@@ -78,6 +78,14 @@ public final class Avvio {
 		}
 		System.out.println("File caricato, ho impiegato "+(System.currentTimeMillis()-avvio)+"ms");
 		avvio=System.currentTimeMillis();
+		//ora creo la coda per le azioni di ordinamento da compiere, nella forma "indice inizio,indice fine"
+		/*i thread:
+		 * Faranno la pop della coda prendendo un'azione
+		 * Eseguiranno l'ordinamento specificato in quell'azione agendo SOLO sull'array degli indici
+		 *     (essendo un quicksort, non ci sono problemi di concorrenza perché sicuramente lavorano su parti diverse dell'array)
+		 * Se necessario (TODO: ottimizzare non accodando array troppo piccoli?), faranno la push per le azioni dei due array così creati
+		 * Quando la coda è vuota e i thread sono in starving, 
+		 *  */
 	}
 
 }
