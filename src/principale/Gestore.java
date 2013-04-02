@@ -8,19 +8,17 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public final class Gestore {
 	/**
 	 * mappa di sola lettura contenente il file intero
 	 * */
-	public static final HashMap<Integer,String> contenuto=new HashMap<Integer,String>(2000);
+	public static String[] contenuto;
 	/**
 	 * mappa di sola lettura contenente gli indici delle chiavi
 	 * */
-	public static Vector<String> chiavi=new Vector<String>(100);
+	public static String[] chiavi;
 	public static int[] indici=null;
 	public static final LinkedBlockingQueue<CoppiaIndici> pendenti=new LinkedBlockingQueue<CoppiaIndici>();
 	private static Ordinatore[] ordinatori=new Ordinatore[12];
@@ -58,7 +56,7 @@ public final class Gestore {
 			e.printStackTrace();
 			System.exit(3);
 		}
-		String outputFile=args[0];
+		String outputFile=args[3];
 		//carichiamo il file in memoria, memorizzando il campo su cui avverrà l'ordinamento sotto forma di valore e di chiave
 		FileInputStream fs=null;
 		try {
@@ -68,27 +66,46 @@ public final class Gestore {
 			e.printStackTrace();
 			System.exit(4);
 		}
+		System.out.println("Inizio a leggere il file "+inputFile);
+		
 		DataInputStream din = new DataInputStream(fs);
 		BufferedReader br = new BufferedReader(new InputStreamReader(din));
+		
+		//pasos il file due volte, la prima solo per contare le righe e la seconda per memorizzarle
+		//ho fatto delle prove e ho visto che è più veloce fare due passate e istanziare direttamente un arraypiuttosto che usare una struttura dati
+		//intermedia allocata dinamicamente
+		int dimensioni=0;
+		while(br.readLine()!=null)dimensioni++;
+		chiavi=new String[dimensioni];
+		contenuto=new String[dimensioni];
+		System.out.println("ci sono "+dimensioni+" righe");
+		
+		din.close();
+		fs.close();
+		fs = new FileInputStream(inputFile);
+		din = new DataInputStream(fs);
+		br = new BufferedReader(new InputStreamReader(din));
+		
 		String strl;
 		int ind=0;
 		while((strl=br.readLine())!=null){
 			String[] vals = strl.split("\t",-1);
-			contenuto.put(ind, strl);
-			chiavi.add(ind, vals[indice]);
+			contenuto[ind]= strl;
+			chiavi[ind]=vals[indice];
 			ind++;
 		}
+
 		din.close();
 		fs.close();
 		indici=new int[ind];
 		for(int i=0;i<ind;i++){
-			indici[i]=1;
+			indici[i]=i;
 		}
-		System.out.println("File caricato, ho impiegato "+(System.currentTimeMillis()-avvio)+"ms");
+		System.out.println("File caricato, ho impiegato "+(System.currentTimeMillis()-avvio)+"ms. Passo all'ordinamento");
 		avvio=System.currentTimeMillis();
 		//ora creo la coda per le azioni di ordinamento da compiere, nella forma "indice inizio,indice fine"
 		try {
-			pendenti.put(new CoppiaIndici(0,ind));
+			pendenti.put(new CoppiaIndici(0,ind-1));
 		} catch (InterruptedException e) {
 			// non dovrebbe mai accadere, la dimensione della coda è Integer.MAXINT
 			e.printStackTrace();
@@ -97,7 +114,7 @@ public final class Gestore {
 		 * Faranno la pop della coda prendendo un'azione
 		 * Eseguiranno l'ordinamento specificato in quell'azione agendo SOLO sull'array degli indici
 		 *     (essendo un quicksort, non ci sono problemi di concorrenza perché sicuramente lavorano su parti diverse dell'array)
-		 * Se necessario (TODO: ottimizzare non accodando array troppo piccoli?), faranno la push per le azioni dei due array così creati
+		 * Se necessario, faranno la push per le azioni dei due array così creati
 		 * Quando la coda è vuota e i thread sono in starving, il lavoro è finito e posso scrivere il file.
 		 * Non uso join e wait, perché per efficienza lascio aperta l'istanza del thread e la riutilizzo, senza chiuderla.
 		 *  */
@@ -110,30 +127,28 @@ public final class Gestore {
 		//quando tutti i thread sono in starving e la lista è vuota, ho finito
 		while(true){
 			try {
-				Thread.sleep(30);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				//non importa
 			}
 			if(pendenti.size()>0) continue;
-			for(int i=1;i<maxThread;i++)
-				if (ordinatori[i].starving==true)
+			for(int i=0;i<maxThread;i++)
+				if (ordinatori[i].starving==false)
 					continue;
 			//sono arrivato qua, quindi la coda è vuota e i thread sono in starvation, esco dal ciclo e salvo il file
 			break;
 		}
-		System.out.println("Ordinamento effettuato, impiegati "+(System.currentTimeMillis()-avvio)+"ms");
+		for(int i=1;i<maxThread;i++)ordinatori[i].terminabile=true;
+		System.out.println("\nOrdinamento effettuato, impiegati "+(System.currentTimeMillis()-avvio)+"ms");
 		avvio=System.currentTimeMillis();
 		
 		FileWriter fso = new FileWriter(outputFile);
-        BufferedWriter out = new BufferedWriter(fso);
-       
-        //Close the output stream
-        
+        BufferedWriter out = new BufferedWriter(fso,1024*1024*5);
 		
 		for(int i=0;i<ind;i++){
-			 out.write(contenuto.get(i)+"\n");
+			 out.write(contenuto[indici[i]]+"\n");
 		}
 		out.close();
-		System.out.println("Scrittura del file conclusa, ha richiesto "+(System.currentTimeMillis()-avvio)+"ms");
+		System.out.println("Scrittura del file "+outputFile+" conclusa, ha richiesto "+(System.currentTimeMillis()-avvio)+"ms");
 	}
 }
