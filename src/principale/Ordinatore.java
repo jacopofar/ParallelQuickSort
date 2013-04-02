@@ -28,7 +28,8 @@ public class Ordinatore extends Thread {
 			if(azione==null) continue;
 			//sono qua, quindi ho preso un'azione e non era null, non sono più starving
 			starving=false;
-			//TODO azione di quicksort
+			//azione di quicksort vera e propria
+			System.out.println("azione: "+azione.inizio+"-"+azione.fine);
 			//se sono due o uno, li sposto e basta senza accodarli
 			if(azione.fine-azione.inizio<3){
 				if(azione.fine==azione.inizio) continue;
@@ -54,7 +55,7 @@ public class Ordinatore extends Thread {
 						pivotInd=c;
 					else
 						pivotInd=a;
-				
+
 			}
 			else{
 				if(decrescenti(a,c)) pivotInd=a;
@@ -63,12 +64,28 @@ public class Ordinatore extends Thread {
 						pivotInd=c;
 					else
 						pivotInd=b;
-				
+
 			}
 			//ora pivot contiene l'indice della stringa pivot
 			//la estraggo per usarla velocemente
 			String pivot=Gestore.chiavi.get(pivotInd);
-			
+			//avrò due indici, corrispondenti all'estremo destro e sinistro
+			//li sposto finché non si incontrano, e man mano che accade inverto le coppie
+			int dx=azione.fine,sx=azione.inizio;
+			for(int i=sx;i<dx;i++){
+				if(Gestore.chiavi.get(a).compareTo(pivot)<=0){
+					int tmp=ind[i];
+					ind[i]=ind[sx];
+					ind[sx]=tmp;
+					sx++;
+				}
+			}
+			int tmp=ind[dx];
+			ind[dx]=ind[sx];
+			ind[sx]=tmp;
+			//ora ho eseguito un passo del quicksort, inserisco le due nuove partizioni nella coda
+			Gestore.pendenti.add(new CoppiaIndici(azione.inizio,sx));
+			Gestore.pendenti.add(new CoppiaIndici(dx,azione.fine));
 		}
 	}
 	public void start(){
