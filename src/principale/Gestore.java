@@ -21,8 +21,7 @@ public final class Gestore {
 	/**
 	 * Indica il Locale da usare, in questo caso il Lituano
 	 * */
-	static Locale MIO_LOCALE=Locale.forLanguageTag("en-US.UTF-8");
-	//static final Locale MIO_LOCALE=Locale.US;
+	static Locale MIO_LOCALE=new Locale("en");
 	/**
 	 * mappa di sola lettura contenente gli indici delle chiavi
 	 * */
@@ -67,7 +66,7 @@ public final class Gestore {
 		}
 		String outputFile=args[3];
 		if(args.length==5)
-			MIO_LOCALE=Locale.forLanguageTag(args[4]);
+			MIO_LOCALE=new Locale(args[4]);
 		System.out.println("NOTA: per confrontare le stringhe utilizzo il Locale '"+MIO_LOCALE.toLanguageTag()+"' ['"+MIO_LOCALE.getDisplayName()+"']");
 		
 		

@@ -20,7 +20,7 @@ L'applicazione richiede 4 parametri, più il locale che è opzionale (se non spe
 
 * Il percorso del file TSV prodotto in output
 
-* Opzionalmente, il locale (per esempio per il Lituano è *ln-LN*)
+* Opzionalmente, il locale secondo la notazione ISO-639 (per esempio per il lituano è *lt*, per l'italiano *it*, [lista](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes))
 
 Funzionamento
 =============
