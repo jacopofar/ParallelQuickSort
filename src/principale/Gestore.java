@@ -91,7 +91,7 @@ public final class Gestore {
 		while(br.readLine()!=null)dimensioni++;
 		chiavi=new String[dimensioni];
 		contenuto=new String[dimensioni];
-		System.out.println("ci sono "+dimensioni+" righe");
+		System.out.println("il dataset è composto da "+dimensioni+" righe");
 		
 		din.close();
 		fs.close();

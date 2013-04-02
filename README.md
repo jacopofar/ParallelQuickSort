@@ -5,7 +5,7 @@ Questo programma in Java esegue un ordinamento di un file TSV, tramite una versi
 
 L'ordinamento è effettuato in base a un campo, il cui indice è indicato come argomento dalla linea di comando.
 
-Il confronto varia in base al Locale, che è applicato al livelo TERTIARY.
+Il confronto varia in base al *Locale*, che è applicato al livello [TERTIARY](http://docs.oracle.com/javase/1.5.0/docs/api/java/text/Collator.html#setStrength(int)).
 
 Utilizzo
 ========
@@ -18,9 +18,11 @@ L'applicazione richiede 4 parametri, più il locale che è opzionale (se non spe
 
 * Il numero di thread (1-12) da usare
 
-* Il percorso del file TSV prodotto in output
+* Il percorso del file TSV che sarà prodotto in output
 
-* Opzionalmente, il locale secondo la notazione ISO-639 (per esempio per il lituano è *lt*, per l'italiano *it*, [lista](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes))
+* Opzionalmente, il locale secondo la notazione ISO-639 (per esempio per il lituano è `lt`, per l'italiano `it`, [lista](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes))
+
+
 
 Funzionamento
 =============
