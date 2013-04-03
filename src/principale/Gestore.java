@@ -11,7 +11,7 @@ import java.io.InputStreamReader;
 import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 /**
- * Classe che gestisce l'ordinamento con quicksort parallelo di un file di testo.
+ * Classe che gestisce l'ordinamento con una versione parallela di quicksort di un file TSV.
  * */
 public final class Gestore {
 	/**
@@ -19,7 +19,7 @@ public final class Gestore {
 	 * */
 	public static String[] contenuto;
 	/**
-	 * Indica il Locale da usare, in questo caso il Lituano
+	 * Indica il Locale da usare, in questo caso inglese
 	 * */
 	static Locale MIO_LOCALE=new Locale("en");
 	/**
@@ -41,7 +41,7 @@ public final class Gestore {
 					"\n* L'indice della colonna su cui ordinare" +
 					"\n* Il numero di thread massimi (da 1 a 12)" +
 			"\n* Il file per l'output ordinato" +
-			"\n* [opzionale] Il Locale, ad esempio 'lt-LT' se non specificato utilizza 'en-US'");
+			"\n* [opzionale] Il Locale, ad esempio 'lt' se non specificato utilizza 'en'");
 			System.exit(1);
 		}
 		String inputFile=args[0];
@@ -125,7 +125,7 @@ public final class Gestore {
 			// non dovrebbe mai accadere, la dimensione della coda è Integer.MAXINT
 			e.printStackTrace();
 		}
-		/*i thread:
+		/*I thread:
 		 * Faranno la pop della coda prendendo un'azione
 		 * Eseguiranno l'ordinamento specificato in quell'azione agendo SOLO sull'array degli indici
 		 *     (essendo un quicksort, non ci sono problemi di concorrenza perché sicuramente lavorano su parti diverse dell'array)
