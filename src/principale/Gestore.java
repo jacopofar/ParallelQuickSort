@@ -67,7 +67,7 @@ public final class Gestore {
 		String outputFile=args[3];
 		if(args.length==5)
 			MIO_LOCALE=new Locale(args[4]);
-		System.out.println("NOTA: per confrontare le stringhe utilizzo il Locale '"+MIO_LOCALE.toLanguageTag()+"' ['"+MIO_LOCALE.getDisplayName()+"']");
+		System.out.println("NOTA: per confrontare le stringhe utilizzo il Locale ['"+MIO_LOCALE.getDisplayName()+"']");
 		
 		
 		//carichiamo il file in memoria, memorizzando il campo su cui avverrà l'ordinamento sotto forma di valore e di chiave
