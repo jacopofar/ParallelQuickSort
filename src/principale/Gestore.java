@@ -35,8 +35,8 @@ public final class Gestore {
 	 */
 	public static void main(String[] args) throws IOException {
 		long avvio=System.currentTimeMillis();
-		if(args.length<5){
-			System.err.println("Errore, devi inserire quattro o cinque argomenti:" +
+		if(args.length<4){
+			System.err.println("Errore, devi inserire quattro o cinque argomenti, ne hai inseriti "+args.length+":" +
 					"\n* il percorso del file TSV" +
 					"\n* L'indice della colonna su cui ordinare" +
 					"\n* Il numero di thread massimi (da 1 a 12)" +
