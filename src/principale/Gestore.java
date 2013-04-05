@@ -35,7 +35,7 @@ public final class Gestore {
 	 */
 	public static void main(String[] args) throws IOException {
 		long avvio=System.currentTimeMillis();
-		if(args.length!=4){
+		if(args.length<5){
 			System.err.println("Errore, devi inserire quattro o cinque argomenti:" +
 					"\n* il percorso del file TSV" +
 					"\n* L'indice della colonna su cui ordinare" +
